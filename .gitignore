@@ -4,6 +4,7 @@ __pycache__/
 .dist/
 build/
 dist/
+*.whl
 .venv/
 venv/
 .env

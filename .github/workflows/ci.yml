@@ -29,3 +29,25 @@ jobs:
         run: |
           python ai_workflow_tool.py --help
           python ai_workflow_tool.py --version
+
+  package:
+    name: Build and install distributions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build wheel and source archive
+        run: |
+          python -m pip install build
+          python -m build --sdist --wheel
+      - name: Install and smoke-test wheel
+        run: |
+          python -m venv /tmp/package-venv
+          /tmp/package-venv/bin/python -m pip install --no-deps dist/*.whl
+          cd /tmp
+          /tmp/package-venv/bin/ai-workflow --version
+          /tmp/package-venv/bin/ai-workflow --help

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,13 +8,12 @@ version = "1.0.0"
 description = "A Python CLI that turns research requests into gated work orders and assistant-ready prompts"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "All rights reserved; no open-source license is granted." }
+license = "LicenseRef-Proprietary"
 authors = [{ name = "Repository contributors" }]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Environment :: Console",
   "Intended Audience :: Developers",
-  "License :: Other/Proprietary License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -24,6 +23,9 @@ classifiers = [
   "Topic :: Utilities",
 ]
 dependencies = []
+
+[project.optional-dependencies]
+build = ["build>=1.2"]
 
 [project.scripts]
 ai-workflow = "ai_workflow_tool:main"

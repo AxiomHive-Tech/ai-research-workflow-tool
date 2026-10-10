@@ -24,6 +24,24 @@ python3 ai_workflow_tool.py
 
 Answer the intake questions. The tool writes a Markdown work order to standard output by default. Questions marked required correspond to the blocking gate; optional context is retained when supplied. If a required answer is missing, the generated work order says **BLOCKED** and the assistant-ready prompt tells the assistant to ask and stop.
 
+## Install as a Python package
+
+Install the built wheel with pip:
+
+```bash
+python3 -m pip install ./dist/ai_research_workflow_tool-1.0.0-py3-none-any.whl
+ai-workflow --help
+```
+
+To build the wheel and source archive from a checkout, install the build extra and run:
+
+```bash
+python3 -m pip install '.[build]'
+python3 -m build --sdist --wheel
+```
+
+This creates artifacts in `dist/`. The package uses the proprietary/no-license declaration; no open-source reuse rights are granted. These artifacts are locally built and are not uploaded to PyPI or another package index.
+
 Save output to a new file:
 
 ```bash

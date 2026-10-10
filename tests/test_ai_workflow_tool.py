@@ -51,6 +51,7 @@ class WorkOrderTests(unittest.TestCase):
 
     def test_citation_policy_is_mandatory(self) -> None:
         self.assertTrue(self.work_order["citation_policy"]["required"])
+        self.assertEqual(self.work_order["gate_status"], "cleared")
         self.assertIn("Citations are mandatory", " ".join(self.work_order["research_plan"]))
 
     def test_assistant_prompt_preserves_gate_and_citations(self) -> None:
@@ -71,7 +72,9 @@ class WorkOrderTests(unittest.TestCase):
     def test_blocked_work_order_clearly_stops_execution(self) -> None:
         work_order = tool.build_workflow({"goal": "A goal"}, generated_at="fixed")
         self.assertTrue(work_order["blocking_questions"])
+        self.assertEqual(work_order["gate_status"], "blocked")
         self.assertIn("STATUS: BLOCKED", tool.render(work_order, "text"))
+        self.assertIn("ask only those questions and stop", work_order["assistant_ready_prompt"])
         self.assertIn("resolve the clarification gate", work_order["assistant_ready_prompt"].lower())
 
     def test_unknown_format_is_rejected(self) -> None:

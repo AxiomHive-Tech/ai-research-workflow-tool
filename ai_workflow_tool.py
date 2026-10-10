@@ -126,6 +126,7 @@ def build_workflow(intake_raw: dict[str, Any], generated_at: str | None = None) 
     work_order: dict[str, Any] = {
         "schema_version": "1.0",
         "generated_at": generated_at or dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+        "gate_status": "blocked" if blockers else "cleared",
         "understanding": understanding,
         "intake": intake,
         "blocking_questions": blockers,
@@ -159,7 +160,7 @@ def build_assistant_prompt(work_order: dict[str, Any]) -> str:
         "You are completing the task described below. Follow the sequence and acceptance rules exactly.",
         "",
         "CLARIFICATION GATE — MUST FOLLOW",
-        "Do not begin substantive research, design, or implementation until every blocking question is answered or explicitly waived by the requester. If any remain, ask only the targeted questions needed and stop. Do not silently fill gaps with assumptions.",
+        "Do not begin substantive research, design, or implementation until every blocking question is answered or explicitly waived by the requester. If any blocking questions remain, ask only those questions and stop; do not continue with research, design, implementation, or claims of completion. Do not silently fill gaps with assumptions.",
         "",
         "TASK REQUIREMENTS",
     ]

@@ -4,10 +4,13 @@ A repeatable, code-backed Python CLI for turning a research or analysis request 
 
 The tool runs on Python 3.10+ and uses only the standard library. No account, API key, network connection, or third-party dependency is required.
 
+The CLI prepares instructions only: it does not conduct research, produce the downstream requested deliverable, or independently verify citations.
+
 ## What it produces
 
 - A concise understanding of the requested task and a normalized intake record.
 - Targeted blocking questions for unanswered correctness-critical requirements. A blocked work order explicitly instructs the assistant to stop before substantive work.
+- A machine-readable `gate_status` of `blocked` or `cleared`; `cleared` means intake is complete enough to start, not that the research or requested task is complete.
 - Proposed assumptions labeled **not approved**; the assistant is instructed not to treat them as requirements without requester approval.
 - A research plan with mandatory citation expectations, a design plan, implementation expectations, usage directions, and a verification checklist.
 - An assistant-ready prompt that preserves the same clarification gate and citation rules.

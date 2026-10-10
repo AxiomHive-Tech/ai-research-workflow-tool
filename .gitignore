@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.dist/
+build/
+dist/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.pytest_cache/
+.coverage
+htmlcov/
+work-order.txt
+work-order.md
+work-order.json

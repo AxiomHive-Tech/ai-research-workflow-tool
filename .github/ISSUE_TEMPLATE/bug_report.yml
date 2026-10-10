@@ -1,0 +1,36 @@
+name: Bug report
+description: Report a reproducible defect in the workflow CLI
+title: "Bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include private task data, credentials, or generated work orders containing sensitive information."
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should the CLI do?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened? Redact private data.
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: e.g. 3.12
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Include safe commands and sanitized input only.
+    validations:
+      required: true

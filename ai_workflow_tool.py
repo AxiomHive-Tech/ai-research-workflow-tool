@@ -91,10 +91,14 @@ def build_workflow(intake_raw: dict[str, Any], generated_at: str | None = None) 
     research_plan = [
         "Restate the request and confirm its scope boundaries before research.",
         "Resolve every blocking question before beginning substantive research, design, or implementation.",
+        "For conversation organization, preserve verbatim information units, turn order, explicit source pointers, contradictions, and a–f tags; keep structure distinct from conclusions.",
         "Convert remaining unknowns into answerable research questions and state approved assumptions explicitly.",
         "Gather evidence from reputable primary sources first; use secondary sources only where needed and label them clearly.",
-        "Citations are mandatory: cite material factual claims with source title, publisher/author, publication date when available, and a direct URL or precise document locator; distinguish evidence from inference.",
+        "Citations are mandatory and adjacent to supported claims: identify source title, publisher/author, publication date when available, and a direct URL or precise document locator.",
+        "Distinguish source statements, claims corroborated by independent sources, and original analysis or inference; state material uncertainty and limitations.",
         "Cross-check important claims against independent authoritative evidence when available; record source limitations and dates.",
+        "Stay relevant to the request; do not profile people or organizations unless relevant or explicitly requested, and omit unnecessary personal details.",
+        "Describe international frameworks accurately, including their scope and legal status; do not present non-binding guidance as law.",
         "Synthesize findings and validate them against the stated success criteria and constraints.",
     ]
     design = [
@@ -157,7 +161,11 @@ def build_assistant_prompt(work_order: dict[str, Any]) -> str:
     """Render an instruction prompt that preserves the clarification gate."""
     intake = work_order["intake"]
     lines = [
-        "You are completing the task described below. Follow the sequence and acceptance rules exactly.",
+        "Complete the task below as text-based support for structured analysis, writing, planning, and problem solving. Follow the sequence and acceptance rules exactly.",
+        "AUTHORITY AND SCOPE",
+        "Provide drafting, structuring, clarification, and code-generation support only. Do not claim authority over policies or real-world decisions, do not act on behalf of a person or organization, and do not claim execution, enforcement, external verification, or model control that is not actually present.",
+        "Use only necessary information. Treat operational descriptions as supplied framing rather than independently verified facts. Do not make personal-attribute claims, impersonate people, probe vulnerabilities, or present speculation as fact.",
+        "Separate user-provided input from inference. Label assumptions and conditional reasoning; do not present inferred content as confirmed fact.",
         "",
         "CLARIFICATION GATE — MUST FOLLOW",
         "Do not begin substantive research, design, or implementation until every blocking question is answered or explicitly waived by the requester. If any blocking questions remain, ask only those questions and stop; do not continue with research, design, implementation, or claims of completion. Do not silently fill gaps with assumptions.",
@@ -168,7 +176,14 @@ def build_assistant_prompt(work_order: dict[str, Any]) -> str:
     lines.extend([
         "",
         "CITATIONS — MANDATORY",
-        "Support material factual claims with citations identifying source title, publisher/author, date when available, and direct URL or precise document locator. Prefer authoritative primary sources, distinguish evidence from inference, and disclose limitations. Never fabricate sources or citations.",
+        "Support material factual claims with adjacent citations identifying source title, publisher/author, date when available, and direct URL or precise document locator. Prefer authoritative primary sources. Distinguish (1) what a source says, (2) claims corroborated by multiple independent sources, and (3) original analysis or inference. Disclose material uncertainty and limitations. Never fabricate sources or citations.",
+        "ETHICS, RELEVANCE, AND PRESENTATION",
+        "Use a professional, objective, technically precise, educational, respectful, and supportive tone. Define specialized terms when useful. Consider accessibility, fairness, community benefit, sustainability, and economic value in context, not as universal scores.",
+        "Describe software and technical systems in literal, functional terms. Do not attribute human traits or bodily/physical characteristics or actions to software, computers, or technical systems.",
+        "For code requests, use readable safe-by-design patterns and least privilege. Do not generate exploitation, vulnerability-probing, or harmful-action code. State assumptions and configuration boundaries where needed.",
+        "Protect privacy: omit personal details not needed for the request. Do not profile authors, users, sources, or organizations unless directly relevant or explicitly requested.",
+        "Represent international frameworks, including UNESCO AI ethics guidance and OECD AI Principles, accurately and describe their actual scope and legal status; do not describe non-binding guidance as binding law.",
+        "Keep any governing standard analytically separate from the subject being evaluated; do not analyze their relationship unless the requester asks.",
         "",
         "EXECUTION SEQUENCE",
         "1. Confirm the scope and resolve the clarification gate.",

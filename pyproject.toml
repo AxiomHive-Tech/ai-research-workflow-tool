@@ -22,16 +22,20 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Topic :: Utilities",
 ]
-dependencies = []
+dependencies = ["jsonschema>=4.23,<5"]
 
 [project.optional-dependencies]
 build = ["build>=1.2"]
 
 [project.scripts]
 ai-workflow = "ai_workflow_tool:main"
+unified-workflow = "unified_workflow:main"
 
 [tool.setuptools]
-py-modules = ["ai_workflow_tool"]
+py-modules = ["ai_workflow_tool", "unified_workflow", "conversation_store", "security_policy"]
+
+[tool.setuptools.data-files]
+"share/ai-research-workflow-tool" = ["workflow.schema.json", "timethread_schema.sql"]
 
 [tool.setuptools.packages.find]
 include = []

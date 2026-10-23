@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://axiomhive.example/schemas/workflow.schema.json",
+  "title": "Unified Human-Support Research and Design Workflow",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "workflow_id", "status", "created_at", "sources", "claims", "stages"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "workflow_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["in_progress", "blocked", "ready_for_approval", "released"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "released_at": {"type": ["string", "null"], "format": "date-time"},
+    "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}},
+    "claims": {"type": "array", "items": {"$ref": "#/$defs/claim"}},
+    "stages": {
+      "type": "array", "minItems": 8, "maxItems": 8,
+      "prefixItems": [
+        {"$ref": "#/$defs/scope"}, {"$ref": "#/$defs/clarification"},
+        {"$ref": "#/$defs/research"}, {"$ref": "#/$defs/design"},
+        {"$ref": "#/$defs/safety_review"}, {"$ref": "#/$defs/draft"},
+        {"$ref": "#/$defs/human_review"}, {"$ref": "#/$defs/release"}
+      ], "items": false
+    }
+  },
+  "$defs": {
+    "source": {"type": "object", "additionalProperties": false, "required": ["source_id", "title", "url"], "properties": {"source_id": {"type": "string", "minLength": 1}, "title": {"type": "string", "minLength": 1}, "publisher": {"type": "string"}, "url": {"type": "string", "minLength": 1}, "published_at": {"type": ["string", "null"], "format": "date-time"}, "accessed_at": {"type": ["string", "null"], "format": "date-time"}}},
+    "claim": {"type": "object", "additionalProperties": false, "required": ["claim_id", "statement", "source_ids", "support_status"], "properties": {"claim_id": {"type": "string", "minLength": 1}, "statement": {"type": "string", "minLength": 1}, "source_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}, "support_status": {"enum": ["supported", "qualified", "unsupported"]}, "analysis_type": {"enum": ["source_statement", "corroborated", "inference"]}, "limitations": {"type": "string"}}},
+    "stageBase": {"type": "object", "additionalProperties": false, "required": ["stage", "status", "started_at", "completed_at", "record"], "properties": {"stage": {"type": "string"}, "status": {"type": "string"}, "started_at": {"type": ["string", "null"], "format": "date-time"}, "completed_at": {"type": ["string", "null"], "format": "date-time"}, "record": {"type": "object"}}},
+    "scope": {"allOf": [{"$ref": "#/$defs/stageBase"}, {"properties": {"stage": {"const": "scope"}, "status": {"enum": ["pending", "completed"]}}}]},
+    "clarification": {"allOf": [{"$ref": "#/$defs/stageBase"}, {"properties": {"stage": {"const": "clarification"}, "status": {"enum": ["pending", "completed", "assumed", "needs_input"]}}}]},
+    "research": {"allOf": [{"$ref": "#/$defs/stageBase"}, {"properties": {"stage": {"const": "research"}, "status": {"enum": ["pending", "completed", "not_required", "blocked"]}}}]},
+    "design": {"allOf": [{"$ref": "#/$defs/stageBase"}, {"properties": {"stage": {"const": "design"}, "status": {"enum": ["pending", "completed", "blocked"]}}}]},
+    "safety_review": {"allOf": [{"$ref": "#/$defs/stageBase"}, {"properties": {"stage": {"const": "safety_review"}, "status": {"enum": ["pending", "pass", "redirect", "escalate"]}, "record": {"type": "object", "additionalProperties": false, "properties": {"risk_items": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["risk_id", "residual_risk"], "properties": {"risk_id": {"type": "string", "minLength": 1}, "description": {"type": "string"}, "affected_groups": {"type": "array", "items": {"type": "string"}}, "mitigation": {"type": "string"}, "residual_risk": {"enum": ["none", "low", "moderate", "high"]}}}}, "decision": {"enum": ["pass", "redirect", "escalate"]}, "privacy_review": {"enum": ["completed", "not_applicable", "escalate"]}, "legal_review": {"enum": ["completed", "not_required", "pending"]}}}}}]},
+    "draft": {"allOf": [{"$ref": "#/$defs/stageBase"}, {"properties": {"stage": {"const": "draft"}, "status": {"enum": ["pending", "completed", "blocked"]}}}]},
+    "human_review": {"allOf": [{"$ref": "#/$defs/stageBase"}, {"properties": {"stage": {"const": "human_review"}, "status": {"enum": ["pending", "approved", "changes_required"]}}}]},
+    "release": {"allOf": [{"$ref": "#/$defs/stageBase"}, {"properties": {"stage": {"const": "release"}, "status": {"enum": ["pending", "released", "blocked"]}}}]}
+  }
+}

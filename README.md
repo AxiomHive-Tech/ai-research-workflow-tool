@@ -2,7 +2,7 @@
 
 A repeatable Python toolkit for preparing research work orders, validating an eight-stage human-controlled workflow, organizing conversation records, and checking least-privilege authorization before a future model call.
 
-Requires Python 3.10+. The original `ai-workflow` intake CLI uses the standard library. The unified validator additionally uses `jsonschema>=4.23,<5`.
+Requires Python 3.10+. The `ai_workflow_tool.py` intake module uses only the standard library, so it runs from a source checkout with no extra installs. The unified validator uses `jsonschema>=4.23,<5`, which is a declared dependency of the installed package (version 1.1.0), so installing the wheel or running `pip install -e .` also installs it.
 
 The toolkit does not execute a model, conduct external research, verify factual truth, or connect to PostgreSQL. Its workflow and storage schemas are reference implementations; the authorization gate must be called by any future execution adapter before model invocation.
 
@@ -29,7 +29,7 @@ Answer the intake questions. The tool writes a Markdown work order to standard o
 Install the built wheel with pip:
 
 ```bash
-python3 -m pip install ./dist/ai_research_workflow_tool-1.0.0-py3-none-any.whl
+python3 -m pip install ./dist/ai_research_workflow_tool-1.1.0-py3-none-any.whl
 ai-workflow --help
 ```
 
@@ -117,7 +117,7 @@ python3 -m pip install -e .
 unified-workflow init workflow.json --id case-001
 unified-workflow validate workflow.json
 unified-workflow validate-system unified_system.example.json
-# Equivalent from a source checkout:
+# Equivalent from a source checkout (requires: pip install jsonschema):
 python3 unified_workflow.py init workflow.json
 python3 unified_workflow.py validate workflow.json
 python3 unified_workflow.py validate-system unified_system.example.json
@@ -148,7 +148,8 @@ ai-research-workflow-tool/
 │   ├── test_unified_workflow.py
 │   ├── test_conversation_store.py
 │   ├── test_security_policy.py
-│   └── test_unified_system_schema.py
+│   ├── test_unified_system_schema.py
+│   └── test_end_to_end_integration.py
 ├── docs/
 │   ├── architecture.md
 │   ├── acceptance.md

@@ -1,13 +1,16 @@
 # Changelog
 
-## Unreleased — Schema hardening (2026-10-23, `ee97c38`)
+## 1.1.0 — 2026-10-23
 
-- Require explicit human approval and a present, empty unresolved-issues register before workflow release.
-- Require nonempty planning blocks and evidence references for completed workflow/research stages, passed verification gates, audit pillars, and the approval decision.
-- Add an evidence registry; reject duplicate evidence IDs and references that do not resolve. Release evidence must be marked reviewed or verified.
-- Require every component to be independently verified, at least one evidence-backed metric to be met, and verified evidence records before marking the system qualified.
-- Add regression coverage for the previously identified release and qualification bypasses.
-- Validation: 53 automated tests passed; both schemas passed Draft 2020-12 validation; the sample system manifest and package-wheel contents were checked.
+- Add the unified eight-stage research workflow runtime, strict workflow schema, evidence/source validation, safety review gates, and explicit human approval for release.
+- Add a least-privilege security preflight and a chronological, provenance-aware conversation store with non-destructive restructuring controls.
+- Add the comprehensive system manifest schema for components, governance layers, planning blocks, research stages, verification gates, audit pillars, and qualification.
+- Harden release and qualification gates: require explicit approval, a present empty unresolved-issues register, nonempty planning, evidence references that resolve through the registry, and reviewed evidence for release.
+- Require independently verified components and evidence-backed met metrics before a manifest may claim qualified status.
+- Add command-line end-to-end integration coverage from intake and work-order generation through workflow release and system-manifest validation.
+- Apply Ruff lint fixes and format all Python source and test files.
+- Update the GitHub Actions test matrix to install declared runtime dependencies before importing and testing the workflow validators.
+- Verification: 54 tests passed; Ruff lint and formatting checks passed; both JSON schemas passed Draft 2020-12 validation; package source and wheel builds succeeded. Bandit found two low-severity warnings for controlled subprocess use in the integration-test harness and no medium/high findings.
 
 ## 1.0.0
 

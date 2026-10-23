@@ -5,14 +5,15 @@ Collect task requirements and produce a complete, structured work order plus an
 assistant-ready prompt in plain text, Markdown, or JSON. Uses only the Python
 standard library.
 """
+
 from __future__ import annotations
 
 import argparse
 import datetime as dt
 import json
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 from typing import Any
 
 __version__ = "1.0.0"
@@ -43,7 +44,7 @@ def _clean(value: Any) -> str:
     if value is None:
         return ""
     if not isinstance(value, (str, int, float, bool)):
-        raise ValueError("Intake values must be strings or scalar values.")
+        raise ValueError("Intake values must be strings or scalar values.")  # noqa: TRY004 -- preserve the established intake-validation exception contract
     return str(value).strip()
 
 
@@ -58,13 +59,22 @@ def normalize_intake(raw: dict[str, Any]) -> dict[str, str]:
 
 def find_blockers(intake: dict[str, str]) -> list[str]:
     """Return unanswered correctness-critical questions in stable order."""
-    return [question for key, question in BLOCKING_QUESTIONS.items() if not intake.get(key, "").strip()]
+    return [
+        question
+        for key, question in BLOCKING_QUESTIONS.items()
+        if not intake.get(key, "").strip()
+    ]
 
 
-def collect_intake(stream_in: Any = sys.stdin, stream_out: Any = sys.stdout) -> dict[str, str]:
+def collect_intake(
+    stream_in: Any = sys.stdin, stream_out: Any = sys.stdout
+) -> dict[str, str]:
     """Interactively collect the task details. EOF or Ctrl-C exits cleanly."""
     values: dict[str, str] = {}
-    print("Provide the request details. Answer what you know; required gaps will be flagged.\n", file=stream_out)
+    print(
+        "Provide the request details. Answer what you know; required gaps will be flagged.\n",
+        file=stream_out,
+    )
     try:
         for key, label, required in INTAKE_FIELDS:
             suffix = " (required to proceed)" if required else " (optional)"
@@ -75,10 +85,13 @@ def collect_intake(stream_in: Any = sys.stdin, stream_out: Any = sys.stdout) -> 
     return normalize_intake(values)
 
 
-def build_workflow(intake_raw: dict[str, Any], generated_at: str | None = None) -> dict[str, Any]:
+def build_workflow(
+    intake_raw: dict[str, Any], generated_at: str | None = None
+) -> dict[str, Any]:
     """Build the machine-readable work order and assistant-ready prompt."""
     intake = normalize_intake(intake_raw)
     blockers = find_blockers(intake)
+
     def label(key: str) -> str:
         return intake[key] if intake[key] else "Not provided"
 
@@ -129,7 +142,8 @@ def build_workflow(intake_raw: dict[str, Any], generated_at: str | None = None) 
     ]
     work_order: dict[str, Any] = {
         "schema_version": "1.0",
-        "generated_at": generated_at or dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+        "generated_at": generated_at
+        or dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "gate_status": "blocked" if blockers else "cleared",
         "understanding": understanding,
         "intake": intake,
@@ -172,32 +186,37 @@ def build_assistant_prompt(work_order: dict[str, Any]) -> str:
         "",
         "TASK REQUIREMENTS",
     ]
-    lines.extend(f"- {key.replace('_', ' ').title()}: {value or 'Not provided'}" for key, value in intake.items())
-    lines.extend([
-        "",
-        "CITATIONS — MANDATORY",
-        "Support material factual claims with adjacent citations identifying source title, publisher/author, date when available, and direct URL or precise document locator. Prefer authoritative primary sources. Distinguish (1) what a source says, (2) claims corroborated by multiple independent sources, and (3) original analysis or inference. Disclose material uncertainty and limitations. Never fabricate sources or citations.",
-        "ETHICS, RELEVANCE, AND PRESENTATION",
-        "Use a professional, objective, technically precise, educational, respectful, and supportive tone. Define specialized terms when useful. Consider accessibility, fairness, community benefit, sustainability, and economic value in context, not as universal scores.",
-        "Describe software and technical systems in literal, functional terms. Do not attribute human traits or bodily/physical characteristics or actions to software, computers, or technical systems.",
-        "For code requests, use readable safe-by-design patterns and least privilege. Do not generate exploitation, vulnerability-probing, or harmful-action code. State assumptions and configuration boundaries where needed.",
-        "Protect privacy: omit personal details not needed for the request. Do not profile authors, users, sources, or organizations unless directly relevant or explicitly requested.",
-        "Represent international frameworks, including UNESCO AI ethics guidance and OECD AI Principles, accurately and describe their actual scope and legal status; do not describe non-binding guidance as binding law.",
-        "Keep any governing standard analytically separate from the subject being evaluated; do not analyze their relationship unless the requester asks.",
-        "",
-        "EXECUTION SEQUENCE",
-        "1. Confirm the scope and resolve the clarification gate.",
-        "2. Research using traceable evidence and cite material claims.",
-        "3. Present a design or deliverable outline with inputs, outputs, edge cases, and acceptance criteria.",
-        "4. Implement or write the complete requested deliverable only after requirements are clear.",
-        "5. Verify every acceptance criterion and provide usage/run instructions where applicable.",
-        "",
-        "QUALITY RULES",
-        "- Do not include TODOs, stubs, mocks, or placeholders in the final output.",
-        "- Do not claim a test or verification was performed unless it actually was.",
-        "- Respect the requester's audience, output format, constraints, and approved assumptions.",
-        "- Report limitations honestly and ask for missing information when it affects correctness.",
-    ])
+    lines.extend(
+        f"- {key.replace('_', ' ').title()}: {value or 'Not provided'}"
+        for key, value in intake.items()
+    )
+    lines.extend(
+        [
+            "",
+            "CITATIONS — MANDATORY",
+            "Support material factual claims with adjacent citations identifying source title, publisher/author, date when available, and direct URL or precise document locator. Prefer authoritative primary sources. Distinguish (1) what a source says, (2) claims corroborated by multiple independent sources, and (3) original analysis or inference. Disclose material uncertainty and limitations. Never fabricate sources or citations.",
+            "ETHICS, RELEVANCE, AND PRESENTATION",
+            "Use a professional, objective, technically precise, educational, respectful, and supportive tone. Define specialized terms when useful. Consider accessibility, fairness, community benefit, sustainability, and economic value in context, not as universal scores.",
+            "Describe software and technical systems in literal, functional terms. Do not attribute human traits or bodily/physical characteristics or actions to software, computers, or technical systems.",
+            "For code requests, use readable safe-by-design patterns and least privilege. Do not generate exploitation, vulnerability-probing, or harmful-action code. State assumptions and configuration boundaries where needed.",
+            "Protect privacy: omit personal details not needed for the request. Do not profile authors, users, sources, or organizations unless directly relevant or explicitly requested.",
+            "Represent international frameworks, including UNESCO AI ethics guidance and OECD AI Principles, accurately and describe their actual scope and legal status; do not describe non-binding guidance as binding law.",
+            "Keep any governing standard analytically separate from the subject being evaluated; do not analyze their relationship unless the requester asks.",
+            "",
+            "EXECUTION SEQUENCE",
+            "1. Confirm the scope and resolve the clarification gate.",
+            "2. Research using traceable evidence and cite material claims.",
+            "3. Present a design or deliverable outline with inputs, outputs, edge cases, and acceptance criteria.",
+            "4. Implement or write the complete requested deliverable only after requirements are clear.",
+            "5. Verify every acceptance criterion and provide usage/run instructions where applicable.",
+            "",
+            "QUALITY RULES",
+            "- Do not include TODOs, stubs, mocks, or placeholders in the final output.",
+            "- Do not claim a test or verification was performed unless it actually was.",
+            "- Respect the requester's audience, output format, constraints, and approved assumptions.",
+            "- Report limitations honestly and ask for missing information when it affects correctness.",
+        ]
+    )
     return "\n".join(lines)
 
 
@@ -206,15 +225,27 @@ def render_text(work_order: dict[str, Any]) -> str:
     sections: list[tuple[str, Any]] = [
         ("1) Understanding", work_order["understanding"]),
         ("2) Blocking Questions", work_order["blocking_questions"]),
-        ("3) Assumptions (not approved)", [*work_order["assumptions"]["proposed"], work_order["assumptions"]["instruction"]]),
+        (
+            "3) Assumptions (not approved)",
+            [
+                *work_order["assumptions"]["proposed"],
+                work_order["assumptions"]["instruction"],
+            ],
+        ),
         ("4) Research Plan", work_order["research_plan"]),
         ("5) Design", work_order["design"]),
-        ("6) Implementation Expectations (No Mocks/Stubs/Placeholders)", work_order["implementation_expectations"]),
+        (
+            "6) Implementation Expectations (No Mocks/Stubs/Placeholders)",
+            work_order["implementation_expectations"],
+        ),
         ("7) Usage / Run Instructions", work_order["usage"]),
         ("8) Verification Checklist", work_order["verification_checklist"]),
         ("9) Assistant-Ready Prompt", work_order["assistant_ready_prompt"]),
     ]
-    out = ["AI Research & Analysis Workflow Document", f"Generated: {work_order['generated_at']}"]
+    out = [
+        "AI Research & Analysis Workflow Document",
+        f"Generated: {work_order['generated_at']}",
+    ]
     for title, body in sections:
         out.extend(["", title])
         if isinstance(body, list):
@@ -222,9 +253,16 @@ def render_text(work_order: dict[str, Any]) -> str:
         else:
             out.append(str(body))
     if work_order["blocking_questions"]:
-        out.extend(["", "STATUS: BLOCKED — answer or explicitly waive the questions above before substantive execution."])
+        out.extend(
+            [
+                "",
+                "STATUS: BLOCKED — answer or explicitly waive the questions above before substantive execution.",
+            ]
+        )
     else:
-        out.extend(["", "STATUS: UNBLOCKED — requirements are complete enough to proceed."])
+        out.extend(
+            ["", "STATUS: UNBLOCKED — requirements are complete enough to proceed."]
+        )
     return "\n".join(out) + "\n"
 
 
@@ -243,20 +281,44 @@ def render_markdown(work_order: dict[str, Any]) -> str:
         "## 2. Blocking Questions",
         "",
     ]
-    out.extend([f"- {q}" for q in work_order["blocking_questions"]] if work_order["blocking_questions"] else ["None."])
+    out.extend(
+        [f"- {q}" for q in work_order["blocking_questions"]]
+        if work_order["blocking_questions"]
+        else ["None."]
+    )
     out.extend(["", "## 3. Assumptions (not approved)", ""])
     out.extend([f"- {x}" for x in work_order["assumptions"]["proposed"]])
-    out.extend(["", f"> {work_order['assumptions']['instruction']}", "", "## 4. Research Plan", ""])
+    out.extend(
+        [
+            "",
+            f"> {work_order['assumptions']['instruction']}",
+            "",
+            "## 4. Research Plan",
+            "",
+        ]
+    )
     out.extend(f"{i}. {item}" for i, item in enumerate(work_order["research_plan"], 1))
     out.extend(["", "## 5. Design", ""])
     out.extend(f"- {item}" for item in work_order["design"])
-    out.extend(["", "## 6. Implementation Expectations (No Mocks/Stubs/Placeholders)", ""])
+    out.extend(
+        ["", "## 6. Implementation Expectations (No Mocks/Stubs/Placeholders)", ""]
+    )
     out.extend(f"- {item}" for item in work_order["implementation_expectations"])
     out.extend(["", "## 7. Usage / Run Instructions", ""])
     out.extend(f"{i}. {item}" for i, item in enumerate(work_order["usage"], 1))
     out.extend(["", "## 8. Verification Checklist", ""])
     out.extend(f"- [ ] {item}" for item in work_order["verification_checklist"])
-    out.extend(["", "## 9. Assistant-Ready Prompt", "", "```text", work_order["assistant_ready_prompt"], "```", ""])
+    out.extend(
+        [
+            "",
+            "## 9. Assistant-Ready Prompt",
+            "",
+            "```text",
+            work_order["assistant_ready_prompt"],
+            "```",
+            "",
+        ]
+    )
     return "\n".join(out)
 
 
@@ -280,7 +342,9 @@ def _load_intake(path: Path) -> dict[str, Any]:
     except OSError as exc:
         raise ValueError(f"Cannot read intake file {path}: {exc}") from exc
     if not isinstance(value, dict):
-        raise ValueError("The intake JSON root must be an object mapping field names to values.")
+        raise ValueError(  # noqa: TRY004 -- preserve the established CLI validation exception contract
+            "The intake JSON root must be an object mapping field names to values."
+        )
     return value
 
 
@@ -295,13 +359,24 @@ def _write_output(path: Path, content: str, force: bool) -> None:
     temp_path: Path | None = None
     try:
         import tempfile
-        with tempfile.NamedTemporaryFile("w", encoding="utf-8", newline="\n", dir=parent, prefix=f".{path.name}.", suffix=".tmp", delete=False) as handle:
+
+        with tempfile.NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            newline="\n",
+            dir=parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
             temp_path = Path(handle.name)
             handle.write(content)
             handle.flush()
             os.fsync(handle.fileno())
         if path.exists() and not force:
-            raise ValueError(f"Output already exists: {path} (use --force to replace it)")
+            raise ValueError(
+                f"Output already exists: {path} (use --force to replace it)"
+            )
         os.replace(temp_path, path)
     except OSError as exc:
         raise ValueError(f"Cannot write output file {path}: {exc}") from exc
@@ -318,11 +393,30 @@ def make_parser() -> argparse.ArgumentParser:
         description="Collect research-task requirements and produce a work order plus assistant-ready prompt.",
         epilog="Without --intake-file, the tool starts interactive intake. Required fields are validated as blockers, not silently assumed.",
     )
-    parser.add_argument("--format", choices=("text", "markdown", "json"), default="markdown", help="Output encoding (default: markdown).")
-    parser.add_argument("--intake-file", type=Path, help="Read intake fields from a UTF-8 JSON object instead of prompting.")
-    parser.add_argument("--output", type=Path, help="Write to a file instead of stdout; existing files require --force.")
-    parser.add_argument("--force", action="store_true", help="Allow replacing an existing --output file.")
-    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    parser.add_argument(
+        "--format",
+        choices=("text", "markdown", "json"),
+        default="markdown",
+        help="Output encoding (default: markdown).",
+    )
+    parser.add_argument(
+        "--intake-file",
+        type=Path,
+        help="Read intake fields from a UTF-8 JSON object instead of prompting.",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="Write to a file instead of stdout; existing files require --force.",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Allow replacing an existing --output file.",
+    )
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {__version__}"
+    )
     return parser
 
 

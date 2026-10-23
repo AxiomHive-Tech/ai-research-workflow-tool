@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import unittest
 
 from unified_workflow import STAGES, new_workflow, validate_workflow
@@ -9,15 +8,16 @@ from unified_workflow import STAGES, new_workflow, validate_workflow
 def completed_workflow():
     data = new_workflow("test-1")
     data["status"] = "released"
-    now = "2026-10-22T10:00:00+00:00"
     for i, stage in enumerate(data["stages"]):
-        stamp = f"2026-10-22T{10+i:02d}:00:00+00:00"
+        stamp = f"2026-10-22T{10 + i:02d}:00:00+00:00"
         stage["started_at"] = stamp
         stage["completed_at"] = stamp
         if stage["stage"] in {"scope", "clarification", "research", "design", "draft"}:
             stage["status"] = "completed"
     data["stages"][4]["status"] = "pass"
-    data["stages"][4]["record"] = {"risk_items": [{"risk_id": "r1", "residual_risk": "low"}]}
+    data["stages"][4]["record"] = {
+        "risk_items": [{"risk_id": "r1", "residual_risk": "low"}]
+    }
     data["stages"][6]["status"] = "approved"
     data["stages"][6]["record"] = {"approved": True, "reviewer": "human"}
     data["stages"][7]["status"] = "released"
@@ -48,13 +48,22 @@ class UnifiedWorkflowTests(unittest.TestCase):
 
     def test_unknown_source_rejected(self):
         data = new_workflow()
-        data["claims"] = [{"claim_id": "c1", "statement": "claim", "source_ids": ["missing"], "support_status": "supported"}]
+        data["claims"] = [
+            {
+                "claim_id": "c1",
+                "statement": "claim",
+                "source_ids": ["missing"],
+                "support_status": "supported",
+            }
+        ]
         self.assertTrue(any("unknown source_id" in e for e in validate_workflow(data)))
 
     def test_high_residual_risk_cannot_pass(self):
         data = new_workflow()
         data["stages"][4]["status"] = "pass"
-        data["stages"][4]["record"] = {"risk_items": [{"risk_id": "r1", "residual_risk": "high"}]}
+        data["stages"][4]["record"] = {
+            "risk_items": [{"risk_id": "r1", "residual_risk": "high"}]
+        }
         self.assertTrue(any("high residual risk" in e for e in validate_workflow(data)))
 
     def test_malformed_risk_record_is_rejected_without_crashing(self):
@@ -67,11 +76,20 @@ class UnifiedWorkflowTests(unittest.TestCase):
     def test_release_without_human_approval_rejected(self):
         data = completed_workflow()
         data["stages"][6]["record"]["approved"] = False
-        self.assertTrue(any("human_review approval" in e for e in validate_workflow(data)))
+        self.assertTrue(
+            any("human_review approval" in e for e in validate_workflow(data))
+        )
 
     def test_unsupported_claim_blocks_release(self):
         data = completed_workflow()
-        data["claims"] = [{"claim_id": "c1", "statement": "unsupported", "source_ids": [], "support_status": "unsupported"}]
+        data["claims"] = [
+            {
+                "claim_id": "c1",
+                "statement": "unsupported",
+                "source_ids": [],
+                "support_status": "unsupported",
+            }
+        ]
         self.assertTrue(any("unsupported claims" in e for e in validate_workflow(data)))
 
     def test_naive_timestamps_rejected(self):
@@ -81,8 +99,18 @@ class UnifiedWorkflowTests(unittest.TestCase):
 
     def test_corrobation_requires_independent_source_records(self):
         data = new_workflow()
-        data["sources"] = [{"source_id":"s1","title":"S1","url":"https://example.test"}]
-        data["claims"] = [{"claim_id":"c1","statement":"claim","source_ids":["s1"],"support_status":"supported","analysis_type":"corroborated"}]
+        data["sources"] = [
+            {"source_id": "s1", "title": "S1", "url": "https://example.test"}
+        ]
+        data["claims"] = [
+            {
+                "claim_id": "c1",
+                "statement": "claim",
+                "source_ids": ["s1"],
+                "support_status": "supported",
+                "analysis_type": "corroborated",
+            }
+        ]
         self.assertTrue(any("at least two" in e for e in validate_workflow(data)))
 
 

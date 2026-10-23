@@ -17,3 +17,5 @@ The control is a procedural preflight interface, not a model-integrated safety s
 The supplied defensive design describes the following as architectural assertions, not demonstrated properties: absence of attackable targets, non-damageability, hostile actions backfiring, isolation of malicious actors, and immunity to malicious effort. This code does **not** claim any of those properties. Threat modeling, adversarial evaluation, independent review, deployment controls, and measurable acceptance criteria remain necessary.
 
 The system records no raw denied request. A digest can support correlation but cannot explain the content or replace an incident record. No claim is made that a hash prevents misuse or proves safety.
+
+System-manifest release and qualification states now require evidence references that resolve through `evidence_registry`; review/verification status, stage/gate/audit evidence, explicit human approval, and zero unresolved issues are checked by schema/runtime logic. These checks establish completeness of declarations, not authenticity of referenced files, reviewer identity, or whether a source substantiates a claim.

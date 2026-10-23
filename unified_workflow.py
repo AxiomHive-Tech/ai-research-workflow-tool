@@ -142,6 +142,30 @@ def validate_system_config(data: Any, schema_path: Path = SYSTEM_SCHEMA_PATH) ->
     errors = [f"schema {('/' + '/'.join(map(str, e.absolute_path))) if e.absolute_path else '/'}: {e.message}" for e in structural]
     if errors or not isinstance(data, dict):
         return errors
+    evidence_records = data["evidence_registry"]
+    evidence_ids = [record["evidence_id"] for record in evidence_records]
+    if len(evidence_ids) != len(set(evidence_ids)):
+        errors.append("evidence_registry: evidence_id values must be unique")
+    known_evidence = set(evidence_ids)
+    evidence_references: list[str] = []
+
+    def collect_evidence_refs(value: Any) -> None:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                if key in {"evidence_refs", "record_refs"} and isinstance(child, list):
+                    evidence_references.extend(ref for ref in child if isinstance(ref, str))
+                elif key == "decision_ref" and isinstance(child, str):
+                    evidence_references.append(child)
+                else:
+                    collect_evidence_refs(child)
+        elif isinstance(value, list):
+            for child in value:
+                collect_evidence_refs(child)
+
+    collect_evidence_refs(data)
+    for reference in evidence_references:
+        if reference not in known_evidence:
+            errors.append(f"evidence reference {reference!r} does not resolve to evidence_registry")
     items = data["information_model"]["items"]
     item_ids = [item["item_id"] for item in items]
     if len(item_ids) != len(set(item_ids)):

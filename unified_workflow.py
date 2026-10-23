@@ -15,6 +15,8 @@ from jsonschema import Draft202012Validator, FormatChecker
 ROOT = Path(__file__).resolve().parent
 _SCHEMA_CANDIDATES = (ROOT / "workflow.schema.json", Path(sysconfig.get_path("data")) / "share" / "ai-research-workflow-tool" / "workflow.schema.json")
 SCHEMA_PATH = next((candidate for candidate in _SCHEMA_CANDIDATES if candidate.is_file()), _SCHEMA_CANDIDATES[0])
+_SYSTEM_SCHEMA_CANDIDATES = (ROOT / "unified_system.schema.json", Path(sysconfig.get_path("data")) / "share" / "ai-research-workflow-tool" / "unified_system.schema.json")
+SYSTEM_SCHEMA_PATH = next((candidate for candidate in _SYSTEM_SCHEMA_CANDIDATES if candidate.is_file()), _SYSTEM_SCHEMA_CANDIDATES[0])
 STAGES = ("scope", "clarification", "research", "design", "safety_review", "draft", "human_review", "release")
 
 
@@ -129,6 +131,33 @@ def validate_workflow(data: Any, schema_path: Path = SCHEMA_PATH) -> list[str]:
     return errors
 
 
+def validate_system_config(data: Any, schema_path: Path = SYSTEM_SCHEMA_PATH) -> list[str]:
+    """Validate the full system manifest and cross-item references."""
+    try:
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"Cannot load system schema: {exc}"]
+    structural = sorted(Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(data),
+                        key=lambda error: list(map(str, error.absolute_path)))
+    errors = [f"schema {('/' + '/'.join(map(str, e.absolute_path))) if e.absolute_path else '/'}: {e.message}" for e in structural]
+    if errors or not isinstance(data, dict):
+        return errors
+    items = data["information_model"]["items"]
+    item_ids = [item["item_id"] for item in items]
+    if len(item_ids) != len(set(item_ids)):
+        errors.append("information_model.items: item_id values must be unique")
+    turns = [item["turn_index"] for item in items]
+    if turns != sorted(turns):
+        errors.append("information_model.items: items must be in nondecreasing turn order")
+    known = set(item_ids)
+    for item in items:
+        for relation, targets in item.get("links", {}).items():
+            for target in targets:
+                if target not in known:
+                    errors.append(f"item {item['item_id']}: {relation} link references unknown item_id {target!r}")
+    return errors
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Create and validate a unified, human-controlled research workflow.")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -138,6 +167,8 @@ def main(argv: list[str] | None = None) -> int:
     init.add_argument("--force", action="store_true")
     check = commands.add_parser("validate", help="validate structure, evidence links, chronology, risks, and release gates")
     check.add_argument("workflow", type=Path)
+    system_check = commands.add_parser("validate-system", help="validate the comprehensive component and governance manifest")
+    system_check.add_argument("manifest", type=Path)
     args = parser.parse_args(argv)
     try:
         if args.command == "init":
@@ -146,14 +177,17 @@ def main(argv: list[str] | None = None) -> int:
             args.output.write_text(json.dumps(new_workflow(args.id), indent=2) + "\n", encoding="utf-8")
             print(f"Created blocked-by-default workflow: {args.output}")
             return 0
-        data = json.loads(args.workflow.read_text(encoding="utf-8"))
-        errors = validate_workflow(data)
+        data = json.loads((args.manifest if args.command == "validate-system" else args.workflow).read_text(encoding="utf-8"))
+        errors = validate_system_config(data) if args.command == "validate-system" else validate_workflow(data)
         if errors:
             print("INVALID")
             for error in errors:
                 print(f"- {error}")
             return 1
-        print("VALID: structure and workflow gates passed")
+        if args.command == "validate-system":
+            print("VALID: system manifest structure and cross-record checks passed")
+        else:
+            print("VALID: structure and workflow gates passed")
         return 0
     except (OSError, json.JSONDecodeError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)

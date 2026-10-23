@@ -116,14 +116,18 @@ The additional runtime validates the fixed `scope → clarification → research
 python3 -m pip install -e .
 unified-workflow init workflow.json --id case-001
 unified-workflow validate workflow.json
+unified-workflow validate-system unified_system.example.json
 # Equivalent from a source checkout:
 python3 unified_workflow.py init workflow.json
 python3 unified_workflow.py validate workflow.json
+python3 unified_workflow.py validate-system unified_system.example.json
 ```
 
 The starter record is not released; populate and review it before changing any status. `conversation_store.py` provides explicit a–f tagged items, provenance links, chronological rendering, candidate duplicate suggestions, and logged non-destructive restructuring. Similarity is only a candidate-finding aid. `security_policy.py` fails closed for unknown/high risk and capability escalation; it records a digest rather than request content. No model call is connected by this repository.
 
 `workflow.schema.json` is the Draft 2020-12 contract. `timethread_schema.sql` is PostgreSQL 16+ DDL requiring `pgcrypto` and `vector`; apply it only to a database you control. Its vector dimensions and HNSW index are design choices, not performance guarantees.
+
+`unified_system.schema.json` is the broader architecture manifest: component inventory, L0–L6 layers, four research-planning blocks, six research stages, seven verification gates, the separate eight-stage workflow, information categories, four audit pillars, defensive matrix, and qualification evidence. `unified_system.example.json` is a pending reference manifest. Released status is conditionally rejected unless the required stages, gates, audits, disclosure, scope, and human approval pass. JSON Schema cannot by itself resolve cross-record identifiers or prove real-world verification; `validate-system` adds ordering and link checks.
 
 See [`docs/unified-system.md`](docs/unified-system.md) for the component map and qualification limits, and [`docs/security-matrix.md`](docs/security-matrix.md) for the least-privilege preflight and unverified defense assertions.
 
@@ -134,17 +138,20 @@ ai-research-workflow-tool/
 ├── ai_workflow_tool.py
 ├── unified_workflow.py
 ├── workflow.schema.json
+├── unified_system.schema.json
+├── unified_system.example.json
 ├── conversation_store.py
 ├── security_policy.py
 ├── timethread_schema.sql
 ├── tests/
-│   └── test_ai_workflow_tool.py
+│   ├── test_ai_workflow_tool.py
 │   ├── test_unified_workflow.py
 │   ├── test_conversation_store.py
-│   └── test_security_policy.py
+│   ├── test_security_policy.py
+│   └── test_unified_system_schema.py
 ├── docs/
 │   ├── architecture.md
-│   └── acceptance.md
+│   ├── acceptance.md
 │   ├── unified-system.md
 │   └── security-matrix.md
 ├── .github/workflows/ci.yml

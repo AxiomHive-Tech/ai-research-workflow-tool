@@ -39,3 +39,9 @@ A pre-output audit is described across accuracy, safety, privacy, and fairness, 
 ## Qualification and release status
 
 A requirement, an implementation, and its verification result remain separate records. The repository tests demonstrate only the tested behaviors in this checkout; they do not establish system-level qualification. No supplied performance target is claimed as achieved. Qualification metrics, adversarial tests, independent evaluation, deployment authorization, and the full Q1–Q7 and multi-agent role contracts are not implemented because the controlling criteria were not fully specified. Human-authorized release remains a workflow condition, not evidence that an external system enforces it.
+
+## Comprehensive architecture manifest
+
+`unified_system.schema.json` defines the system component inventory and preserves separate ordered contracts for governance layers L0–L6, research stages S-1–S-6, verification gates G-1–G-7, and technical workflow stages. It also models the research planning blocks, claim/source taxonomies, conversation-item links, four-pillar pre-output audit, five-step defensive matrix, human approval, qualification evidence, and unverified defense assertions. Its release conditional requires completed workflow stages, passed research gates and audit pillars, completed disclosure and scope checks, and explicit human approval. A `qualified` system status requires qualification evidence.
+
+`unified_system.example.json` demonstrates the non-released, qualification-pending configuration. Run `unified-workflow validate-system unified_system.example.json` to validate the manifest. The CLI adds cross-record item-ID and chronological ordering checks; neither JSON Schema nor this validator establishes semantic truth, source reliability, threat resistance, or external enforcement.

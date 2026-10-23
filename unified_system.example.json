@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "system_id": "axiom-hive-unified-reference",
+  "system_status": "reference_implementation",
+  "components": {
+    "intake": {"component_id":"intake","status":"implemented","purpose":"Capture task scope and blockers","controls":["Required-field clarification gate"],"interfaces":["JSON","CLI"],"evidence_refs":["tests/test_ai_workflow_tool.py"]},
+    "conduct": {"component_id":"conduct","status":"specified","purpose":"Apply evidence, privacy, relevance, and presentation rules","controls":["Citations","Input/inference distinction","Privacy minimization"],"evidence_refs":[]},
+    "research": {"component_id":"research","status":"specified","purpose":"Plan and record research stages","controls":["Four planning blocks","Six research stages","Seven verification gates"],"evidence_refs":[]},
+    "workflow_engine": {"component_id":"workflow_engine","status":"tested","purpose":"Validate ordered workflow and release gates","controls":["Draft 2020-12 schema","Cross-field validation"],"evidence_refs":["tests/test_unified_workflow.py"]},
+    "evidence": {"component_id":"evidence","status":"implemented","purpose":"Maintain source and claim identifiers","controls":["Claim-to-source resolution","Evidence status labeling"],"evidence_refs":["tests/test_unified_workflow.py"]},
+    "conversation_store": {"component_id":"conversation_store","status":"tested","purpose":"Store chronological, tagged information units and links","controls":["a-f tags","Verbatim source text","Append-only restructure log"],"evidence_refs":["tests/test_conversation_store.py"]},
+    "pre_output_audit": {"component_id":"pre_output_audit","status":"specified","purpose":"Record accuracy, safety, privacy, and fairness reviews","controls":["Four-pillar review","Disclosure and scope checks"],"evidence_refs":[]},
+    "security_preflight": {"component_id":"security_preflight","status":"tested","purpose":"Check explicit scopes and fail closed on risk before a future model call","controls":["Least privilege","Unknown/high risk denied","Metadata-only audit"],"evidence_refs":["tests/test_security_policy.py"]},
+    "human_authority": {"component_id":"human_authority","status":"specified","purpose":"Retain human authority over consequential actions and release","controls":["Explicit approval"],"evidence_refs":[]},
+    "persistence": {"component_id":"persistence","status":"specified","purpose":"Provide local JSON and PostgreSQL reference persistence","controls":["Lineaged branches","Deferred foreign keys","Transactional outbox"],"evidence_refs":[],"limitations":["SQL has not been applied to a live database"]},
+    "release_control": {"component_id":"release_control","status":"implemented","purpose":"Require passed gates and human approval before workflow release","controls":["Fail-closed release state"],"evidence_refs":["tests/test_unified_workflow.py"]}
+  },
+  "governance_layers": [
+    {"id":"L0","name":"Practitioner Basis","purpose":"Non-normative governing premise"},
+    {"id":"L1","name":"Constitutional Standard","purpose":"Technology design and leadership principles"},
+    {"id":"L2","name":"Conduct Specifications","purpose":"Research, communication, privacy, and response rules"},
+    {"id":"L3","name":"Research Workflow","purpose":"Planning, collection, analysis, review, and correction"},
+    {"id":"L4","name":"Defensive Architecture","purpose":"Least-privilege and non-weaponization controls"},
+    {"id":"L5","name":"Reference and Information Model","purpose":"Claim, source, verification, and relationship records"},
+    {"id":"L6","name":"Operational Artifacts","purpose":"Checklists, mapping templates, and review records"}
+  ],
+  "research_method": {
+    "planning_blocks": {"philosophy":"Record knowledge and uncertainty rules.","ideology":"Record principles and affected-stakeholder considerations.","methodology":"Record search, inclusion/exclusion, and analysis methods.","ethical_language":"Record terminology, accessibility, and disclosure rules."},
+    "research_stages": [
+      {"id":"S-1","activity":"Project setup","status":"pending","record_refs":[]},
+      {"id":"S-2","activity":"Rule establishment","status":"pending","record_refs":[]},
+      {"id":"S-3","activity":"Planning","status":"pending","record_refs":[]},
+      {"id":"S-4","activity":"Collection and analysis","status":"pending","record_refs":[]},
+      {"id":"S-5","activity":"Review","status":"pending","record_refs":[]},
+      {"id":"S-6","activity":"Communication","status":"pending","record_refs":[]}
+    ],
+    "verification_gates": [
+      {"id":"G-1","check":"Scope and assumptions","status":"pending","failure_action":"Return to intake and clarify or record assumptions."},
+      {"id":"G-2","check":"Planning framework","status":"pending","failure_action":"Halt collection and complete planning blocks."},
+      {"id":"G-3","check":"Source records","status":"pending","failure_action":"Correct records or retain as unverified leads."},
+      {"id":"G-4","check":"Claim labels","status":"pending","failure_action":"Correct labels and record integrity issues."},
+      {"id":"G-5","check":"Verification","status":"pending","failure_action":"Halt finalization; log and resolve issues."},
+      {"id":"G-6","check":"Adherence","status":"pending","failure_action":"Correct non-conforming content and recheck."},
+      {"id":"G-7","check":"Disclosure","status":"pending","failure_action":"Add limitations and status before release."}
+    ]
+  },
+  "workflow": {
+    "release_status":"in_progress",
+    "stages": [
+      {"stage":"scope","status":"completed","evidence_refs":[],"record":{"objective":""}},
+      {"stage":"clarification","status":"pending","evidence_refs":[],"record":{}},
+      {"stage":"research","status":"pending","evidence_refs":[],"record":{}},
+      {"stage":"design","status":"pending","evidence_refs":[],"record":{}},
+      {"stage":"safety_review","status":"pending","evidence_refs":[],"record":{}},
+      {"stage":"draft","status":"pending","evidence_refs":[],"record":{}},
+      {"stage":"human_review","status":"pending","evidence_refs":[],"record":{}},
+      {"stage":"release","status":"pending","evidence_refs":[],"record":{}}
+    ]
+  },
+  "information_model": {
+    "claim_categories":["fact","estimate","interpretation","hypothesis","recommendation"],
+    "source_tiers":["tier_1","tier_2","tier_3","tier_4"],
+    "verification_statuses":["verified_primary","verified_secondary","corrected","unverified","requires_confirmation"],
+    "conversation_tags":["a","b","c","d","e","f"],
+    "items":[]
+  },
+  "pre_output_audit": {
+    "accuracy":{"status":"pending","evidence_refs":[],"limitations":[]},
+    "safety":{"status":"pending","evidence_refs":[],"limitations":[]},
+    "privacy":{"status":"pending","evidence_refs":[],"limitations":[]},
+    "fairness":{"status":"pending","evidence_refs":[],"limitations":[]},
+    "disclosure_complete":false,
+    "scope_confirmed":true
+  },
+  "defensive_matrix": {
+    "steps": [
+      {"number":1,"action":"Detect a potentially harmful request by an approved assessment process.","status":"specified"},
+      {"number":2,"action":"Assess the request and applicable risk.","status":"specified"},
+      {"number":3,"action":"Record decision metadata and report as authorized.","status":"specified"},
+      {"number":4,"action":"Deny or constrain actions using least-privilege controls.","status":"implemented","evidence_refs":["tests/test_security_policy.py"]},
+      {"number":5,"action":"Preserve the outcome record for human review.","status":"specified"}
+    ],
+    "assertions": [
+      {"claim":"no_attackable_target","status":"unverified","evidence_refs":[],"limitations":"Not established by this implementation."},
+      {"claim":"non_damageability","status":"unverified","evidence_refs":[],"limitations":"Not established by this implementation."},
+      {"claim":"hostile_attempts_backfire","status":"unverified","evidence_refs":[],"limitations":"Not established by this implementation."},
+      {"claim":"malicious_actor_isolation","status":"unverified","evidence_refs":[],"limitations":"Not established by this implementation."},
+      {"claim":"immunity_to_malicious_effort","status":"unverified","evidence_refs":[],"limitations":"Not established by this implementation."}
+    ]
+  },
+  "human_authority": {"release_approval":{"approved":false},"irreversible_action_confirmation":false},
+  "qualification": {"status":"not_started","evidence_refs":[],"metrics":[]},
+  "unresolved_issues": ["Live database provisioning, threat-model validation, and independent qualification remain outstanding."],
+  "references": ["NIST AI RMF 1.0","OECD AI Principles","JSON Schema Draft 2020-12"]
+}

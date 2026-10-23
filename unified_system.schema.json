@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://axiomhive.example/schemas/unified_system.schema.json",
+  "title": "Unified Human-Support Research System Configuration",
+  "description": "Declarative architecture and workflow instance schema. Passing structural validation is not system qualification or proof of safety.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "system_id", "system_status", "components", "governance_layers", "research_method", "workflow", "information_model", "pre_output_audit", "defensive_matrix", "qualification"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "system_id": {"type": "string", "minLength": 1},
+    "system_status": {"enum": ["documentary_design", "reference_implementation", "qualification_pending", "qualified"]},
+    "components": {
+      "type": "object", "additionalProperties": false,
+      "required": ["intake", "conduct", "research", "workflow_engine", "evidence", "conversation_store", "pre_output_audit", "security_preflight", "human_authority", "persistence", "release_control"],
+      "properties": {
+        "intake": {"$ref": "#/$defs/component"},
+        "conduct": {"$ref": "#/$defs/component"},
+        "research": {"$ref": "#/$defs/component"},
+        "workflow_engine": {"$ref": "#/$defs/component"},
+        "evidence": {"$ref": "#/$defs/component"},
+        "conversation_store": {"$ref": "#/$defs/component"},
+        "pre_output_audit": {"$ref": "#/$defs/component"},
+        "security_preflight": {"$ref": "#/$defs/component"},
+        "human_authority": {"$ref": "#/$defs/component"},
+        "persistence": {"$ref": "#/$defs/component"},
+        "release_control": {"$ref": "#/$defs/component"}
+      }
+    },
+    "governance_layers": {
+      "type": "array", "minItems": 7, "maxItems": 7,
+      "prefixItems": [
+        {"$ref": "#/$defs/layerL0"}, {"$ref": "#/$defs/layerL1"}, {"$ref": "#/$defs/layerL2"},
+        {"$ref": "#/$defs/layerL3"}, {"$ref": "#/$defs/layerL4"}, {"$ref": "#/$defs/layerL5"}, {"$ref": "#/$defs/layerL6"}
+      ], "items": false
+    },
+    "research_method": {"$ref": "#/$defs/researchMethod"},
+    "workflow": {"$ref": "#/$defs/workflow"},
+    "information_model": {"$ref": "#/$defs/informationModel"},
+    "pre_output_audit": {"$ref": "#/$defs/audit"},
+    "defensive_matrix": {"$ref": "#/$defs/defensiveMatrix"},
+    "human_authority": {"$ref": "#/$defs/humanAuthority"},
+    "qualification": {"$ref": "#/$defs/qualification"},
+    "unresolved_issues": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "references": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"workflow": {"properties": {"release_status": {"const": "released"}}, "required": ["release_status"]}}, "required": ["workflow"]},
+      "then": {
+        "properties": {
+          "workflow": {"properties": {"stages": {"prefixItems": [
+            {"properties": {"status": {"const": "completed"}}},
+            {"properties": {"status": {"enum": ["completed", "assumed"]}}},
+            {"properties": {"status": {"const": "completed"}}},
+            {"properties": {"status": {"const": "completed"}}},
+            {"properties": {"status": {"const": "pass"}}},
+            {"properties": {"status": {"const": "completed"}}},
+            {"properties": {"status": {"const": "approved"}}},
+            {"properties": {"status": {"const": "released"}}}
+          ]}}},
+          "research_method": {"properties": {"research_stages": {"prefixItems": [{"properties": {"status": {"const": "completed"}}}, {"properties": {"status": {"const": "completed"}}}, {"properties": {"status": {"const": "completed"}}}, {"properties": {"status": {"const": "completed"}}}, {"properties": {"status": {"const": "completed"}}}, {"properties": {"status": {"const": "completed"}}}]}, "verification_gates": {"prefixItems": [{"properties": {"status": {"const": "passed"}}}, {"properties": {"status": {"const": "passed"}}}, {"properties": {"status": {"const": "passed"}}}, {"properties": {"status": {"const": "passed"}}}, {"properties": {"status": {"const": "passed"}}}, {"properties": {"status": {"const": "passed"}}}, {"properties": {"status": {"const": "passed"}}}]}}},
+          "pre_output_audit": {"properties": {"accuracy": {"properties": {"status": {"const": "passed"}}}, "safety": {"properties": {"status": {"const": "passed"}}}, "privacy": {"properties": {"status": {"const": "passed"}}}, "fairness": {"properties": {"status": {"const": "passed"}}}, "disclosure_complete": {"const": true}, "scope_confirmed": {"const": true}}},
+          "unresolved_issues": {"maxItems": 0},
+          "human_authority": {"properties": {"release_approval": {"properties": {"approved": {"const": true}, "approver": {"type": "string", "minLength": 1}, "approved_at": {"type": "string", "format": "date-time"}}, "required": ["approved", "approver", "approved_at"]}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"system_status": {"const": "qualified"}}, "required": ["system_status"]},
+      "then": {"properties": {"qualification": {"properties": {"status": {"const": "passed"}, "evidence_refs": {"type": "array", "minItems": 1}}}}}
+    }
+  ],
+  "$defs": {
+    "component": {
+      "type": "object", "additionalProperties": false,
+      "required": ["component_id", "status", "purpose", "controls", "evidence_refs"],
+      "properties": {
+        "component_id": {"type": "string", "minLength": 1},
+        "status": {"enum": ["specified", "implemented", "tested", "independently_verified", "not_implemented"]},
+        "purpose": {"type": "string", "minLength": 1},
+        "controls": {"type": "array", "items": {"type": "string"}},
+        "interfaces": {"type": "array", "items": {"type": "string"}},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}},
+        "limitations": {"type": "array", "items": {"type": "string"}}
+      },
+      "allOf": [{"if": {"properties": {"status": {"enum": ["tested", "independently_verified"]}}, "required": ["status"]}, "then": {"properties": {"evidence_refs": {"minItems": 1}}}}]
+    },
+    "layer": {"type": "object", "additionalProperties": false, "required": ["id", "name", "purpose"], "properties": {"id": {"type": "string"}, "name": {"type": "string", "minLength": 1}, "purpose": {"type": "string", "minLength": 1}, "component_refs": {"type": "array", "items": {"type": "string"}}}},
+    "layerL0": {"allOf": [{"$ref": "#/$defs/layer"}, {"properties": {"id": {"const": "L0"}}}]},
+    "layerL1": {"allOf": [{"$ref": "#/$defs/layer"}, {"properties": {"id": {"const": "L1"}}}]},
+    "layerL2": {"allOf": [{"$ref": "#/$defs/layer"}, {"properties": {"id": {"const": "L2"}}}]},
+    "layerL3": {"allOf": [{"$ref": "#/$defs/layer"}, {"properties": {"id": {"const": "L3"}}}]},
+    "layerL4": {"allOf": [{"$ref": "#/$defs/layer"}, {"properties": {"id": {"const": "L4"}}}]},
+    "layerL5": {"allOf": [{"$ref": "#/$defs/layer"}, {"properties": {"id": {"const": "L5"}}}]},
+    "layerL6": {"allOf": [{"$ref": "#/$defs/layer"}, {"properties": {"id": {"const": "L6"}}}]},
+    "researchMethod": {
+      "type": "object", "additionalProperties": false,
+      "required": ["planning_blocks", "research_stages", "verification_gates"],
+      "properties": {
+        "planning_blocks": {"type": "object", "additionalProperties": false, "required": ["philosophy", "ideology", "methodology", "ethical_language"], "properties": {"philosophy": {"type": "string"}, "ideology": {"type": "string"}, "methodology": {"type": "string"}, "ethical_language": {"type": "string"}}},
+        "research_stages": {"type": "array", "minItems": 6, "maxItems": 6, "prefixItems": [{"$ref": "#/$defs/researchS1"}, {"$ref": "#/$defs/researchS2"}, {"$ref": "#/$defs/researchS3"}, {"$ref": "#/$defs/researchS4"}, {"$ref": "#/$defs/researchS5"}, {"$ref": "#/$defs/researchS6"}], "items": false},
+        "verification_gates": {"type": "array", "minItems": 7, "maxItems": 7, "prefixItems": [{"$ref": "#/$defs/gateG1"}, {"$ref": "#/$defs/gateG2"}, {"$ref": "#/$defs/gateG3"}, {"$ref": "#/$defs/gateG4"}, {"$ref": "#/$defs/gateG5"}, {"$ref": "#/$defs/gateG6"}, {"$ref": "#/$defs/gateG7"}], "items": false}
+      }
+    },
+    "researchStage": {"type": "object", "additionalProperties": false, "required": ["id", "activity", "status", "record_refs"], "properties": {"id": {"type": "string"}, "activity": {"type": "string", "minLength": 1}, "status": {"enum": ["pending", "in_progress", "completed", "blocked"]}, "record_refs": {"type": "array", "items": {"type": "string"}}}},
+    "researchS1": {"allOf": [{"$ref": "#/$defs/researchStage"}, {"properties": {"id": {"const": "S-1"}}}]},
+    "researchS2": {"allOf": [{"$ref": "#/$defs/researchStage"}, {"properties": {"id": {"const": "S-2"}}}]},
+    "researchS3": {"allOf": [{"$ref": "#/$defs/researchStage"}, {"properties": {"id": {"const": "S-3"}}}]},
+    "researchS4": {"allOf": [{"$ref": "#/$defs/researchStage"}, {"properties": {"id": {"const": "S-4"}}}]},
+    "researchS5": {"allOf": [{"$ref": "#/$defs/researchStage"}, {"properties": {"id": {"const": "S-5"}}}]},
+    "researchS6": {"allOf": [{"$ref": "#/$defs/researchStage"}, {"properties": {"id": {"const": "S-6"}}}]},
+    "gate": {"type": "object", "additionalProperties": false, "required": ["id", "check", "status", "failure_action"], "properties": {"id": {"type": "string"}, "check": {"type": "string", "minLength": 1}, "status": {"enum": ["pending", "passed", "failed", "waived"]}, "failure_action": {"type": "string", "minLength": 1}, "evidence_refs": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}, "rationale": {"type": "string"}}, "allOf": [{"if": {"properties": {"status": {"enum": ["failed", "waived"]}}, "required": ["status"]}, "then": {"required": ["rationale"]}}]},
+    "gateG1": {"allOf": [{"$ref": "#/$defs/gate"}, {"properties": {"id": {"const": "G-1"}}}]},
+    "gateG2": {"allOf": [{"$ref": "#/$defs/gate"}, {"properties": {"id": {"const": "G-2"}}}]},
+    "gateG3": {"allOf": [{"$ref": "#/$defs/gate"}, {"properties": {"id": {"const": "G-3"}}}]},
+    "gateG4": {"allOf": [{"$ref": "#/$defs/gate"}, {"properties": {"id": {"const": "G-4"}}}]},
+    "gateG5": {"allOf": [{"$ref": "#/$defs/gate"}, {"properties": {"id": {"const": "G-5"}}}]},
+    "gateG6": {"allOf": [{"$ref": "#/$defs/gate"}, {"properties": {"id": {"const": "G-6"}}}]},
+    "gateG7": {"allOf": [{"$ref": "#/$defs/gate"}, {"properties": {"id": {"const": "G-7"}}}]},
+    "workflow": {
+      "type": "object", "additionalProperties": false, "required": ["release_status", "stages"],
+      "properties": {
+        "release_status": {"enum": ["blocked", "in_progress", "ready_for_approval", "released"]},
+        "stages": {"type": "array", "minItems": 8, "maxItems": 8, "prefixItems": [{"$ref": "#/$defs/wScope"}, {"$ref": "#/$defs/wClarification"}, {"$ref": "#/$defs/wResearch"}, {"$ref": "#/$defs/wDesign"}, {"$ref": "#/$defs/wSafety"}, {"$ref": "#/$defs/wDraft"}, {"$ref": "#/$defs/wHuman"}, {"$ref": "#/$defs/wRelease"}], "items": false}
+      }
+    },
+    "workflowStage": {"type": "object", "additionalProperties": false, "required": ["stage", "status", "evidence_refs"], "properties": {"stage": {"type": "string"}, "status": {"type": "string"}, "evidence_refs": {"type": "array", "items": {"type": "string"}}, "record": {"type": "object"}}},
+    "wScope": {"allOf": [{"$ref": "#/$defs/workflowStage"}, {"properties": {"stage": {"const": "scope"}, "status": {"enum": ["pending", "completed"]}}}]},
+    "wClarification": {"allOf": [{"$ref": "#/$defs/workflowStage"}, {"properties": {"stage": {"const": "clarification"}, "status": {"enum": ["pending", "completed", "assumed", "needs_input"]}}}]},
+    "wResearch": {"allOf": [{"$ref": "#/$defs/workflowStage"}, {"properties": {"stage": {"const": "research"}, "status": {"enum": ["pending", "completed", "blocked"]}}}]},
+    "wDesign": {"allOf": [{"$ref": "#/$defs/workflowStage"}, {"properties": {"stage": {"const": "design"}, "status": {"enum": ["pending", "completed", "blocked"]}}}]},
+    "wSafety": {"allOf": [{"$ref": "#/$defs/workflowStage"}, {"properties": {"stage": {"const": "safety_review"}, "status": {"enum": ["pending", "pass", "redirect", "escalate"]}}}]},
+    "wDraft": {"allOf": [{"$ref": "#/$defs/workflowStage"}, {"properties": {"stage": {"const": "draft"}, "status": {"enum": ["pending", "completed", "blocked"]}}}]},
+    "wHuman": {"allOf": [{"$ref": "#/$defs/workflowStage"}, {"properties": {"stage": {"const": "human_review"}, "status": {"enum": ["pending", "approved", "changes_required"]}}}]},
+    "wRelease": {"allOf": [{"$ref": "#/$defs/workflowStage"}, {"properties": {"stage": {"const": "release"}, "status": {"enum": ["pending", "released", "blocked"]}}}]},
+    "informationModel": {
+      "type": "object", "additionalProperties": false, "required": ["claim_categories", "source_tiers", "verification_statuses", "conversation_tags", "items"],
+      "properties": {
+        "claim_categories": {"type": "array", "const": ["fact", "estimate", "interpretation", "hypothesis", "recommendation"]},
+        "source_tiers": {"type": "array", "const": ["tier_1", "tier_2", "tier_3", "tier_4"]},
+        "verification_statuses": {"type": "array", "const": ["verified_primary", "verified_secondary", "corrected", "unverified", "requires_confirmation"]},
+        "conversation_tags": {"type": "array", "const": ["a", "b", "c", "d", "e", "f"]},
+        "items": {"type": "array", "items": {"$ref": "#/$defs/conversationItem"}}
+      }
+    },
+    "conversationItem": {"type": "object", "additionalProperties": false, "required": ["item_id", "turn_index", "raw_text", "normalized_terms", "tag", "topic_id", "source", "location", "verification_status", "sensitive"], "properties": {"item_id": {"type": "string", "minLength": 1}, "turn_index": {"type": "integer", "minimum": 0}, "timestamp": {"type": ["string", "null"], "format": "date-time"}, "raw_text": {"type": "string"}, "normalized_terms": {"type": "array", "items": {"type": "string"}}, "tag": {"enum": ["a", "b", "c", "d", "e", "f"]}, "topic_id": {"type": "string", "minLength": 1}, "source": {"enum": ["user", "assistant", "document"]}, "location": {"type": "string", "minLength": 1}, "verification_status": {"enum": ["verified_primary", "verified_secondary", "corrected", "unverified", "requires_confirmation"]}, "sensitive": {"type": "boolean"}, "links": {"type": "object", "additionalProperties": false, "properties": {"continuation_of": {"type": "array", "items": {"type": "string"}}, "references": {"type": "array", "items": {"type": "string"}}, "duplicates_of": {"type": "array", "items": {"type": "string"}}, "supports": {"type": "array", "items": {"type": "string"}}, "contradicts": {"type": "array", "items": {"type": "string"}}}}}},
+    "auditPillar": {"type": "object", "additionalProperties": false, "required": ["status", "evidence_refs", "limitations"], "properties": {"status": {"enum": ["pending", "passed", "failed"]}, "evidence_refs": {"type": "array", "items": {"type": "string"}}, "limitations": {"type": "array", "items": {"type": "string"}}}},
+    "audit": {"type": "object", "additionalProperties": false, "required": ["accuracy", "safety", "privacy", "fairness", "disclosure_complete", "scope_confirmed"], "properties": {"accuracy": {"$ref": "#/$defs/auditPillar"}, "safety": {"$ref": "#/$defs/auditPillar"}, "privacy": {"$ref": "#/$defs/auditPillar"}, "fairness": {"$ref": "#/$defs/auditPillar"}, "disclosure_complete": {"type": "boolean"}, "scope_confirmed": {"type": "boolean"}}},
+    "defensiveMatrix": {
+      "type": "object", "additionalProperties": false, "required": ["steps", "assertions"],
+      "properties": {
+        "steps": {"type": "array", "minItems": 5, "maxItems": 5, "prefixItems": [{"$ref": "#/$defs/dStep1"}, {"$ref": "#/$defs/dStep2"}, {"$ref": "#/$defs/dStep3"}, {"$ref": "#/$defs/dStep4"}, {"$ref": "#/$defs/dStep5"}], "items": false},
+        "assertions": {"type": "array", "minItems": 5, "maxItems": 5, "prefixItems": [{"$ref": "#/$defs/dClaim1"}, {"$ref": "#/$defs/dClaim2"}, {"$ref": "#/$defs/dClaim3"}, {"$ref": "#/$defs/dClaim4"}, {"$ref": "#/$defs/dClaim5"}], "items": false}
+      }
+    },
+    "defenseStep": {"type": "object", "additionalProperties": false, "required": ["number", "action", "status"], "properties": {"number": {"type": "integer"}, "action": {"type": "string", "minLength": 1}, "status": {"enum": ["specified", "implemented", "tested", "unverified"]}, "evidence_refs": {"type": "array", "items": {"type": "string"}}}},
+    "dStep1": {"allOf": [{"$ref": "#/$defs/defenseStep"}, {"properties": {"number": {"const": 1}}}]},
+    "dStep2": {"allOf": [{"$ref": "#/$defs/defenseStep"}, {"properties": {"number": {"const": 2}}}]},
+    "dStep3": {"allOf": [{"$ref": "#/$defs/defenseStep"}, {"properties": {"number": {"const": 3}}}]},
+    "dStep4": {"allOf": [{"$ref": "#/$defs/defenseStep"}, {"properties": {"number": {"const": 4}}}]},
+    "dStep5": {"allOf": [{"$ref": "#/$defs/defenseStep"}, {"properties": {"number": {"const": 5}}}]},
+    "defenseClaim": {"type": "object", "additionalProperties": false, "required": ["claim", "status", "evidence_refs"], "properties": {"claim": {"type": "string"}, "status": {"const": "unverified"}, "evidence_refs": {"type": "array", "items": {"type": "string"}}, "limitations": {"type": "string"}}},
+    "dClaim1": {"allOf": [{"$ref": "#/$defs/defenseClaim"}, {"properties": {"claim": {"const": "no_attackable_target"}}}]},
+    "dClaim2": {"allOf": [{"$ref": "#/$defs/defenseClaim"}, {"properties": {"claim": {"const": "non_damageability"}}}]},
+    "dClaim3": {"allOf": [{"$ref": "#/$defs/defenseClaim"}, {"properties": {"claim": {"const": "hostile_attempts_backfire"}}}]},
+    "dClaim4": {"allOf": [{"$ref": "#/$defs/defenseClaim"}, {"properties": {"claim": {"const": "malicious_actor_isolation"}}}]},
+    "dClaim5": {"allOf": [{"$ref": "#/$defs/defenseClaim"}, {"properties": {"claim": {"const": "immunity_to_malicious_effort"}}}]},
+    "humanAuthority": {"type": "object", "additionalProperties": false, "required": ["release_approval"], "properties": {"release_approval": {"type": "object", "additionalProperties": false, "required": ["approved"], "properties": {"approved": {"type": "boolean"}, "approver": {"type": "string"}, "approved_at": {"type": "string", "format": "date-time"}, "decision_ref": {"type": "string"}}}, "irreversible_action_confirmation": {"type": "boolean"}}},
+    "qualification": {"type": "object", "additionalProperties": false, "required": ["status", "evidence_refs", "metrics"], "properties": {"status": {"enum": ["not_started", "in_progress", "passed", "failed"]}, "evidence_refs": {"type": "array", "items": {"type": "string"}}, "metrics": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["name", "target", "status"], "properties": {"name": {"type": "string"}, "target": {"type": "string"}, "observed": {"type": ["number", "null"]}, "status": {"enum": ["not_measured", "in_progress", "met", "not_met"]}, "evidence_refs": {"type": "array", "items": {"type": "string"}}}}}}
+  }
+}
+}

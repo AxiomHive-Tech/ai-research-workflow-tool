@@ -35,7 +35,7 @@ unified-workflow = "unified_workflow:main"
 py-modules = ["ai_workflow_tool", "unified_workflow", "conversation_store", "security_policy"]
 
 [tool.setuptools.data-files]
-"share/ai-research-workflow-tool" = ["workflow.schema.json", "timethread_schema.sql"]
+"share/ai-research-workflow-tool" = ["workflow.schema.json", "unified_system.schema.json", "unified_system.example.json", "timethread_schema.sql"]
 
 [tool.setuptools.packages.find]
 include = []

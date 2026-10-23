@@ -17,7 +17,7 @@ class EndToEndWorkflowIntegrationTests(unittest.TestCase):
             args, cwd=ROOT, capture_output=True, text=True, check=False
         )
 
-    def test_intake_to_evidence_gated_release_via_clis(self):
+    def test_cli_rejects_self_asserted_workflow_and_system_release_approvals(self):
         with tempfile.TemporaryDirectory() as td:
             tmp = Path(td)
             intake_path = tmp / "intake.json"
@@ -31,7 +31,7 @@ class EndToEndWorkflowIntegrationTests(unittest.TestCase):
                         "deliverable_type": "integration result",
                         "domain": "software validation",
                         "audience": "maintainers",
-                        "success_criteria": "both workflow and manifest validators accept a human-approved fixture",
+                        "success_criteria": "the CLI rejects unauthenticated release approval claims",
                         "constraints": "offline test fixture only",
                         "deadline": "test run",
                         "inputs_available": "synthetic in-test evidence",
@@ -118,12 +118,10 @@ class EndToEndWorkflowIntegrationTests(unittest.TestCase):
             workflow_check = self._run(
                 sys.executable, "unified_workflow.py", "validate", str(workflow_path)
             )
-            self.assertEqual(
-                workflow_check.returncode,
-                0,
-                workflow_check.stdout + workflow_check.stderr,
+            self.assertEqual(workflow_check.returncode, 1)
+            self.assertIn(
+                "trusted approval verifier is required", workflow_check.stdout
             )
-            self.assertIn("VALID", workflow_check.stdout)
 
             manifest = json.loads(
                 (ROOT / "unified_system.example.json").read_text(encoding="utf-8")
@@ -172,12 +170,10 @@ class EndToEndWorkflowIntegrationTests(unittest.TestCase):
                 "validate-system",
                 str(manifest_path),
             )
-            self.assertEqual(
-                manifest_check.returncode,
-                0,
-                manifest_check.stdout + manifest_check.stderr,
+            self.assertEqual(manifest_check.returncode, 1)
+            self.assertIn(
+                "trusted approval verifier is required", manifest_check.stdout
             )
-            self.assertIn("VALID: system manifest", manifest_check.stdout)
 
 
 if __name__ == "__main__":

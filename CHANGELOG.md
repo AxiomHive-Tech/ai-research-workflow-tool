@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Reject workflow and system-manifest release claims by default unless a trusted embedding application provides an approval verifier; the CLI provides none and cannot authenticate approvers.
+- Pass a defensive copy of the complete document to the verifier and fail closed when it rejects approval or raises an exception.
+- Add regression tests for forged/self-asserted CLI approvals, verifier rejection, verifier errors, and accepted test-verifier callbacks.
+
 ## 1.1.0 — 2026-10-23
 
 - Add the unified eight-stage research workflow runtime, strict workflow schema, evidence/source validation, safety review gates, and explicit human approval for release.

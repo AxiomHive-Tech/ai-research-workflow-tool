@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import datetime as dt
 import json
 import sys
 import sysconfig
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -46,6 +48,7 @@ STAGES = (
     "human_review",
     "release",
 )
+ApprovalVerifier = Callable[[dict[str, Any]], bool]
 
 
 def _utc_now() -> str:
@@ -102,8 +105,38 @@ def _parse_time(value: Any, label: str, errors: list[str]) -> dt.datetime | None
     return parsed
 
 
-def validate_workflow(data: Any, schema_path: Path = SCHEMA_PATH) -> list[str]:
-    """Return all structural and procedural validation errors (empty means valid)."""
+def _approval_verification_error(
+    document: dict[str, Any],
+    approval_verifier: ApprovalVerifier | None,
+    release_label: str,
+) -> str | None:
+    """Require a trusted caller to verify approval over a defensive document copy."""
+    if approval_verifier is None:
+        return (
+            f"{release_label}: a trusted approval verifier is required; "
+            "the CLI does not authenticate approvers"
+        )
+    try:
+        verified = approval_verifier(copy.deepcopy(document))
+    except Exception:  # noqa: BLE001 -- any verifier failure must fail closed
+        return f"{release_label}: trusted approval verification failed closed"
+    if verified is not True:
+        return f"{release_label}: trusted approval verifier rejected the approval"
+    return None
+
+
+def validate_workflow(
+    data: Any,
+    schema_path: Path = SCHEMA_PATH,
+    *,
+    approval_verifier: ApprovalVerifier | None = None,
+) -> list[str]:
+    """Validate a workflow; released records require a caller-trusted verifier.
+
+    The verifier must authenticate the approver and bind approval to the complete
+    document. The CLI does not configure a verifier and therefore rejects release
+    claims rather than treating caller-supplied approval fields as authorization.
+    """
     try:
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -225,13 +258,26 @@ def validate_workflow(data: Any, schema_path: Path = SCHEMA_PATH) -> list[str]:
         errors.append(
             "release: release-stage status cannot be released unless root status is released"
         )
+    if released and not errors:
+        approval_error = _approval_verification_error(
+            data, approval_verifier, "release"
+        )
+        if approval_error:
+            errors.append(approval_error)
     return errors
 
 
 def validate_system_config(
-    data: Any, schema_path: Path = SYSTEM_SCHEMA_PATH
+    data: Any,
+    schema_path: Path = SYSTEM_SCHEMA_PATH,
+    *,
+    approval_verifier: ApprovalVerifier | None = None,
 ) -> list[str]:
-    """Validate the full system manifest and cross-item references."""
+    """Validate a system manifest; released workflows require a trusted verifier.
+
+    The verifier must authenticate the approver and bind approval to the complete
+    manifest. The CLI does not configure a verifier and rejects release claims.
+    """
     try:
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -291,6 +337,12 @@ def validate_system_config(
                     errors.append(
                         f"item {item['item_id']}: {relation} link references unknown item_id {target!r}"
                     )
+    if data["workflow"]["release_status"] == "released" and not errors:
+        approval_error = _approval_verification_error(
+            data, approval_verifier, "system release"
+        )
+        if approval_error:
+            errors.append(approval_error)
     return errors
 
 

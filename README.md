@@ -110,7 +110,7 @@ python3 -m unittest discover -s tests -v
 
 ## Unified workflow runtime
 
-The additional runtime validates the fixed `scope → clarification → research → design → safety_review → draft → human_review → release` lifecycle. It checks strict JSON Schema structure, source-ID resolution, timestamp offsets and order, risk gates, and human release approval.
+The additional runtime validates the fixed `scope → clarification → research → design → safety_review → draft → human_review → release` lifecycle. It checks strict JSON Schema structure, source-ID resolution, timestamp offsets and order, risk gates, and the presence of a human-review approval record. Approval fields supplied in JSON are assertions, not authenticated identity.
 
 ```bash
 python3 -m pip install -e .
@@ -123,11 +123,13 @@ python3 unified_workflow.py validate workflow.json
 python3 unified_workflow.py validate-system unified_system.example.json
 ```
 
+The CLI has no identity provider and fails closed when a workflow or system manifest claims `released` status. Trusted embedding applications may pass an `approval_verifier` callback to `validate_workflow()` or `validate_system_config()`; the callback must authenticate the approver and bind approval to the complete document. It receives a defensive copy. Never derive the verifier from the input manifest or use an unconditional accept callback.
+
 The starter record is not released; populate and review it before changing any status. `conversation_store.py` provides explicit a–f tagged items, provenance links, chronological rendering, candidate duplicate suggestions, and logged non-destructive restructuring. Similarity is only a candidate-finding aid. `security_policy.py` fails closed for unknown/high risk and capability escalation; it records a digest rather than request content. No model call is connected by this repository.
 
 `workflow.schema.json` is the Draft 2020-12 contract. `timethread_schema.sql` is PostgreSQL 16+ DDL requiring `pgcrypto` and `vector`; apply it only to a database you control. Its vector dimensions and HNSW index are design choices, not performance guarantees.
 
-`unified_system.schema.json` is the broader architecture manifest: component inventory, L0–L6 layers, four research-planning blocks, six research stages, seven verification gates, the separate eight-stage workflow, information categories, four audit pillars, defensive matrix, and qualification evidence. `unified_system.example.json` is a pending reference manifest. Release requires explicit approval, a present empty issue register, nonempty planning, and reviewed evidence references for each stage/gate/audit/approval; qualification requires independently verified components and measured metrics. `validate-system` checks chronology and that evidence/record/approval references resolve. It cannot authenticate the referenced material or independently establish truth, safety, or qualification.
+`unified_system.schema.json` is the broader architecture manifest: component inventory, L0–L6 layers, four research-planning blocks, six research stages, seven verification gates, the separate eight-stage workflow, information categories, four audit pillars, defensive matrix, and qualification evidence. `unified_system.example.json` is a pending reference manifest. Release requires explicit approval, a present empty issue register, nonempty planning, and reviewed evidence references for each stage/gate/audit/approval; qualification requires independently verified components and measured metrics. `validate-system` checks chronology and that evidence/record/approval references resolve. The CLI rejects released manifests without a trusted verifier; neither the schema nor resolved references authenticate a reviewer or prove evidence truth, safety, or qualification.
 
 See [`docs/unified-system.md`](docs/unified-system.md) for the component map and qualification limits, and [`docs/security-matrix.md`](docs/security-matrix.md) for the least-privilege preflight and unverified defense assertions.
 

@@ -68,8 +68,28 @@ class UnifiedSystemSchemaTests(unittest.TestCase):
         candidate["unresolved_issues"] = []
         return candidate
 
-    def test_release_passes_when_all_declared_conditions_and_evidence_are_met(self):
-        self.assertEqual(validate_system_config(self._release_ready_manifest()), [])
+    def test_release_rejected_without_external_approval_verifier(self):
+        candidate = self._release_ready_manifest()
+        errors = validate_system_config(candidate)
+        self.assertTrue(
+            any("trusted approval verifier is required" in error for error in errors)
+        )
+
+    def test_release_passes_only_when_external_verifier_accepts(self):
+        candidate = self._release_ready_manifest()
+        # This fixture callback is a test double for a trusted external verifier.
+        self.assertEqual(
+            validate_system_config(candidate, approval_verifier=lambda _document: True),
+            [],
+        )
+        self.assertTrue(
+            any(
+                "verifier rejected the approval" in error
+                for error in validate_system_config(
+                    candidate, approval_verifier=lambda _document: False
+                )
+            )
+        )
 
     def test_release_rejects_missing_human_approval_or_issue_register(self):
         for field in ("human_authority", "unresolved_issues"):

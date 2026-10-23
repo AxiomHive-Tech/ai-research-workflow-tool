@@ -33,8 +33,42 @@ class UnifiedWorkflowTests(unittest.TestCase):
         self.assertEqual(data["status"], "in_progress")
         self.assertEqual(validate_workflow(data), [])
 
-    def test_valid_explicitly_approved_release_passes(self):
-        self.assertEqual(validate_workflow(completed_workflow()), [])
+    def test_self_asserted_release_is_rejected_without_verifier(self):
+        errors = validate_workflow(completed_workflow())
+        self.assertTrue(
+            any("trusted approval verifier is required" in error for error in errors)
+        )
+
+    def test_release_passes_only_with_external_approval_verifier(self):
+        data = completed_workflow()
+        observed = {}
+
+        def fixture_verifier(document):
+            observed["is_copy"] = document is not data
+            observed["workflow_id"] = document["workflow_id"]
+            return True
+
+        # This test double represents an externally trusted verifier; it is not
+        # an authentication mechanism to copy into a production integration.
+        self.assertEqual(
+            validate_workflow(data, approval_verifier=fixture_verifier), []
+        )
+        self.assertEqual(observed, {"is_copy": True, "workflow_id": "test-1"})
+        self.assertEqual(data["status"], "released")
+
+    def test_release_fails_closed_when_verifier_rejects_or_raises(self):
+        data = completed_workflow()
+        rejected = validate_workflow(data, approval_verifier=lambda _document: False)
+        self.assertTrue(
+            any("verifier rejected the approval" in error for error in rejected)
+        )
+
+        def failing_verifier(_document):
+            raise RuntimeError("private verifier detail")
+
+        failed = validate_workflow(data, approval_verifier=failing_verifier)
+        self.assertTrue(any("verification failed closed" in error for error in failed))
+        self.assertFalse(any("private verifier detail" in error for error in failed))
 
     def test_reordered_stages_rejected(self):
         data = new_workflow()
